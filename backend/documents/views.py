@@ -103,36 +103,45 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         )
 
 
-class DocumentDetailView(generics.RetrieveAPIView):
+class DocumentDetailView(generics.RetrieveUpdateAPIView):
     queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return DocumentUpdateSerializer
+        return DocumentSerializer
     
     def get_queryset(self):
         user = self.request.user
         queryset = Document.objects.all()
         
-        # Apply visibility filters
-        if not user.is_admin:
-            queryset = queryset.filter(
-                Q(owner=user) |
-                Q(visibility='PUBLIC') |
-                (Q(visibility='ROLE_BASED') & Q(owner__role=user.role))
-            )
+        # Apply visibility filters for retrieve
+        if self.request.method == 'GET':
+            if not user.is_admin:
+                queryset = queryset.filter(
+                    Q(owner=user) |
+                    Q(visibility='PUBLIC') |
+                    (Q(visibility='ROLE_BASED') & Q(owner__role=user.role))
+                )
+        # For update, only owner or admin can modify
+        else:
+            if not user.is_admin:
+                queryset = queryset.filter(owner=user)
         
         return queryset
-
-
-class DocumentUpdateView(generics.UpdateAPIView):
-    queryset = Document.objects.all()
-    serializer_class = DocumentUpdateSerializer
-    permission_classes = [IsAuthenticated]
     
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_admin:
-            return Document.objects.all()
-        return Document.objects.filter(owner=user)
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        # Return full document serializer
+        return Response(
+            DocumentSerializer(instance, context={'request': request}).data
+        )
 
 
 class DocumentDeleteView(generics.DestroyAPIView):
