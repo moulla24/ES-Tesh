@@ -1,8 +1,11 @@
 import requests
 import PyPDF2
 import json
+import logging
 from django.conf import settings
 from .models import DocumentAnalysis
+
+logger = logging.getLogger(__name__)
 
 
 def extract_text_from_pdf(file_path, max_pages=10):
@@ -20,7 +23,7 @@ def extract_text_from_pdf(file_path, max_pages=10):
         
         return text, page_count
     except Exception as e:
-        print(f"Error extracting text from PDF: {e}")
+        logger.error(f"Error extracting text from PDF: {e}", exc_info=True)
         return "", 0
 
 
@@ -108,11 +111,11 @@ Répondez au format JSON:
             return analysis
         
     except requests.exceptions.ConnectionError:
-        print("Could not connect to Ollama API. Make sure Ollama is running.")
+        logger.warning("Could not connect to Ollama API. Make sure Ollama is running.")
     except requests.exceptions.Timeout:
-        print("Ollama API request timed out.")
+        logger.warning("Ollama API request timed out.")
     except Exception as e:
-        print(f"Error analyzing document: {e}")
+        logger.error(f"Error analyzing document: {e}", exc_info=True)
     
     return None
 
@@ -124,5 +127,5 @@ def analyze_document_async(document_id):
         document = Document.objects.get(id=document_id)
         return analyze_document_with_ollama(document)
     except Document.DoesNotExist:
-        print(f"Document {document_id} not found")
+        logger.error(f"Document {document_id} not found")
         return None

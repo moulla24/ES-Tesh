@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     DocumentListCreateView, DocumentDetailView,
-    DocumentDeleteView, analyze_document, TagListView, document_stats
+    analyze_document, TagListView, document_stats
 )
 
 urlpatterns = [

@@ -89,6 +89,7 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         document = serializer.save(owner=request.user)
         
         # Start analysis in background thread
+        # Note: For production, consider using Celery or async tasks
         thread = threading.Thread(
             target=analyze_document_with_ollama,
             args=(document,)
@@ -103,7 +104,7 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         )
 
 
-class DocumentDetailView(generics.RetrieveUpdateAPIView):
+class DocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Document.objects.all()
     permission_classes = [IsAuthenticated]
     
@@ -124,7 +125,7 @@ class DocumentDetailView(generics.RetrieveUpdateAPIView):
                     Q(visibility='PUBLIC') |
                     (Q(visibility='ROLE_BASED') & Q(owner__role=user.role))
                 )
-        # For update, only owner or admin can modify
+        # For update/delete, only owner or admin can modify
         else:
             if not user.is_admin:
                 queryset = queryset.filter(owner=user)
@@ -144,17 +145,6 @@ class DocumentDetailView(generics.RetrieveUpdateAPIView):
         )
 
 
-class DocumentDeleteView(generics.DestroyAPIView):
-    queryset = Document.objects.all()
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_admin:
-            return Document.objects.all()
-        return Document.objects.filter(owner=user)
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def analyze_document(request, pk):
@@ -170,6 +160,7 @@ def analyze_document(request, pk):
             )
         
         # Start analysis in background
+        # Note: For production, consider using Celery or async tasks
         thread = threading.Thread(
             target=analyze_document_with_ollama,
             args=(document,)
