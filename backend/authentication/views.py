@@ -106,21 +106,14 @@ class UserListView(generics.ListAPIView):
         return queryset
 
 
-class UserDetailView(generics.RetrieveAPIView):
+class UserDetailView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def get_queryset(self):
-        if self.request.user.is_admin:
-            return User.objects.all()
-        return User.objects.filter(id=self.request.user.id)
-
-
-class UserUpdateView(generics.UpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return UserUpdateSerializer
+        return UserSerializer
     
     def get_queryset(self):
         if self.request.user.is_admin:

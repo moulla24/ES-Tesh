@@ -176,7 +176,7 @@ curl -X GET http://localhost:8001/api/documents/7c9e6679-7425-40de-944b-e07fc1f9
 ### 4. Modifier un document
 
 ```bash
-curl -X PATCH http://localhost:8001/api/documents/7c9e6679-7425-40de-944b-e07fc1f90ae7/update/ \
+curl -X PATCH http://localhost:8001/api/documents/7c9e6679-7425-40de-944b-e07fc1f90ae7/ \
   -H "Authorization: Bearer votre_access_token" \
   -H "Content-Type: application/json" \
   -d '{
@@ -190,7 +190,7 @@ curl -X PATCH http://localhost:8001/api/documents/7c9e6679-7425-40de-944b-e07fc1
 ### 5. Supprimer un document
 
 ```bash
-curl -X DELETE http://localhost:8001/api/documents/7c9e6679-7425-40de-944b-e07fc1f90ae7/delete/ \
+curl -X DELETE http://localhost:8001/api/documents/7c9e6679-7425-40de-944b-e07fc1f90ae7/ \
   -H "Authorization: Bearer votre_access_token"
 ```
 
@@ -282,7 +282,7 @@ curl -X GET http://localhost:8001/api/auth/users/550e8400-e29b-41d4-a716-4466554
 ### 3. Modifier un utilisateur
 
 ```bash
-curl -X PATCH http://localhost:8001/api/auth/users/550e8400-e29b-41d4-a716-446655440000/update/ \
+curl -X PATCH http://localhost:8001/api/auth/users/550e8400-e29b-41d4-a716-446655440000/ \
   -H "Authorization: Bearer votre_access_token" \
   -H "Content-Type: application/json" \
   -d '{
